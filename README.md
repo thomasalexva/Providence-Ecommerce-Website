@@ -139,7 +139,7 @@ screenshots/
 
 ---
 
-## Author
+## Authors
 
 **Alex Manoj**,
 **Gowrymol KS**
