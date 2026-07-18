@@ -141,7 +141,7 @@ screenshots/
 
 ## Author
 
-**Alex Manoj**
+**Alex Manoj**,
 **Gowrymol KS**
 
 B.Sc. Computer Science with Data Science
