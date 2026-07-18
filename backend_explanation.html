@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Backend Codebase Walkthrough & Documentation</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+    
+    :root {
+      --bg: #0b0c10;
+      --surface: #1f2833;
+      --surface-light: #2c3540;
+      --border: #45f3ff;
+      --primary: #66fcf1;
+      --secondary: #45f2ff;
+      --text: #c5c6c7;
+      --text-muted: #8b9bb4;
+      --heading: #ffffff;
+      --code-bg: #0f172a;
+      --transition: all 0.25s ease;
+    }
+    
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    header {
+      background: linear-gradient(135deg, #1f2833, #0b0c10);
+      border-bottom: 2px solid var(--border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      box-shadow: 0 4px 20px rgba(0, 242, 254, 0.1);
+    }
+    
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .logo {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0b0c10;
+      font-weight: 800;
+      font-size: 1.4rem;
+      box-shadow: 0 0 15px rgba(102, 252, 241, 0.4);
+    }
+    
+    .title-group h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      color: var(--heading);
+      letter-spacing: -0.02em;
+    }
+    
+    .title-group p {
+      margin: 2px 0 0 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    
+    .app-layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    .sidebar {
+      width: 300px;
+      background: #1f2833;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 1.5rem 1rem;
+      box-sizing: border-box;
+      gap: 0.5rem;
+    }
+    
+    .sidebar-section {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--primary);
+      margin: 1.25rem 0.5rem 0.5rem 0.5rem;
+    }
+    
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: var(--transition);
+      color: var(--text);
+    }
+    
+    .sidebar-item:hover {
+      background: var(--surface-light);
+      color: #ffffff;
+    }
+    
+    .sidebar-item.active {
+      background: rgba(102, 252, 241, 0.1);
+      border-color: var(--primary);
+      color: #ffffff;
+      font-weight: 600;
+    }
+    
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--bg);
+      padding: 2rem;
+      box-sizing: border-box;
+    }
+    
+    .card {
+      background: #1f2833;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    
+    .card h2 {
+      margin-top: 0;
+      color: var(--heading);
+      font-size: 1.8rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 0.75rem;
+      font-family: 'Fira Code', monospace;
+    }
+    
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      background: rgba(102, 252, 241, 0.15);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+    
+    .func-card {
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    
+    .func-card h3 {
+      margin-top: 0;
+      color: var(--primary);
+      font-size: 1.2rem;
+      font-family: 'Fira Code', monospace;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .func-param {
+      font-size: 0.85rem;
+      background: var(--surface-light);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-family: 'Fira Code', monospace;
+    }
+    
+    .code-block {
+      background: var(--code-bg);
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      padding: 1.25rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      color: #38bdf8;
+      border-left: 3px solid var(--primary);
+      margin: 1rem 0;
+    }
+    
+    .step-list {
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+    }
+    
+    .step-list li {
+      margin-bottom: 0.5rem;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-container">
+      <div class="logo">B</div>
+      <div class="title-group">
+        <h1>Providence E-Commerce Backend System</h1>
+        <p>Interactive Walkthrough of Functions, Models, and APIs</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    <div class="sidebar">
+      <div class="sidebar-section">Main Entry</div>
+      <div class="sidebar-item active" onclick="showSection('server')">server.js</div>
+      
+      <div class="sidebar-section">Configurations</div>
+      <div class="sidebar-item" onclick="showSection('db')">config/db.js</div>
+      <div class="sidebar-item" onclick="showSection('seeder')">config/seeder.js</div>
+      
+      <div class="sidebar-section">Database Models</div>
+      <div class="sidebar-item" onclick="showSection('modelfactory')">models/modelFactory.js</div>
+      <div class="sidebar-item" onclick="showSection('dbfallback')">models/dbFallback.js</div>
+      <div class="sidebar-item" onclick="showSection('schemas')">models/User/Product/Order.js</div>
+      
+      <div class="sidebar-section">Middlewares</div>
+      <div class="sidebar-item" onclick="showSection('auth-mw')">middleware/auth.js</div>
+      
+      <div class="sidebar-section">API Controllers</div>
+      <div class="sidebar-item" onclick="showSection('auth-ctrl')">controllers/authController.js</div>
+      <div class="sidebar-item" onclick="showSection('prod-ctrl')">controllers/productController.js</div>
+      <div class="sidebar-item" onclick="showSection('order-ctrl')">controllers/orderController.js</div>
+      <div class="sidebar-item" onclick="showSection('admin-ctrl')">controllers/adminController.js</div>
+      
+      <div class="sidebar-section">Endpoint Routes</div>
+      <div class="sidebar-item" onclick="showSection('routes')">routes/*.js</div>
+    </div>
+
+    <div class="content-area" id="content-container">
+      <!-- server.js -->
+      <div class="section-content" id="sect-server">
+        <div class="card">
+          <span class="badge">Bootstrap</span>
+          <h2>server.js</h2>
+          <p>This is the main server bootstrap entry script. It configures and launches the Express HTTP server process.</p>
+          
+          <div class="func-card">
+            <h3>startServer() <span class="func-param">Async</span></h3>
+            <p><strong>Purpose:</strong> Boots up the backend services sequentially.</p>
+            <div class="code-block">
+const startServer = async () => {\n  await connectDB();\n  await seedDatabase();\n  app.listen(PORT, () => console.log('Server running...'));\n};
+            </div>
+            <ul class="step-list">
+              <li><strong>Step 1:</strong> Runs <code>connectDB()</code> asynchronously to establish connection constraints.</li>
+              <li><strong>Step 2:</strong> Invokes <code>seedDatabase()</code> to verify that template accounts and products are loaded.</li>
+              <li><strong>Step 3:</strong> Starts the server listener on the resolved system PORT (defaults to 5000).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- db.js -->
+      <div class="section-content" id="sect-db" style="display: none;">
+        <div class="card">
+          <span class="badge">Config</span>
+          <h2>config/db.js</h2>
+          <p>Initializes the connection parameters to MongoDB, defining fallback variables in case the local database is offline.</p>
+          
+          <div class="func-card">
+            <h3>connectDB() <span class="func-param">Async</span></h3>
+            <p><strong>Purpose:</strong> Bootstraps Mongoose or enables the JSON file-based database fallback flag.</p>
+            <div class="code-block">
+const connectDB = async () => {\n  const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/providence_ecommerce';\n  try {\n    await mongoose.connect(mongoURI, { serverSelectionTimeoutMS: 2000 });\n    global.useMockDb = false;\n  } catch (err) {\n    global.useMockDb = true;\n  }\n};
+            </div>
+            <ul class="step-list">
+              <li><strong>Step 1:</strong> Resolves environment <code>MONGODB_URI</code> or falls back to local port 27017 connection.</li>
+              <li><strong>Step 2:</strong> Attempts <code>mongoose.connect()</code> using a short 2-second timeout.</li>
+              <li><strong>Step 3:</strong> If connection fails, it catches the error, marks <code>global.useMockDb = true</code>, and falls back to a JSON-based local database.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- seeder.js -->
+      <div class="section-content" id="sect-seeder" style="display: none;">
+        <div class="card">
+          <span class="badge">Database Seeding</span>
+          <h2>config/seeder.js</h2>
+          <p>Pre-populates the database with default administrative, customer, and listing data if it is empty.</p>
+          
+          <div class="func-card">
+            <h3>seedDatabase() <span class="func-param">Async</span></h3>
+            <p><strong>Purpose:</strong> Checks collection records and writes default documents.</p>
+            <ul class="step-list">
+              <li><strong>Step 1:</strong> Evaluates User count via <code>User.countDocuments({})</code>.</li>
+              <li><strong>Step 2:</strong> If count is 0, generates a bcrypt salt and hashes password strings for Admin (<code>admin@techstore.com / admin123</code>) and Client (<code>alen@techstore.com / client123</code>).</li>
+              <li><strong>Step 3:</strong> Inserts user documents into the collection.</li>
+              <li><strong>Step 4:</strong> Seeds 6 initial electronic and lifestyle product listings, complete with prices and mock image URLs.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- modelFactory.js -->
+      <div class="section-content" id="sect-modelfactory" style="display: none;">
+        <div class="card">
+          <span class="badge">Database Proxy</span>
+          <h2>models/modelFactory.js</h2>
+          <p>Implements a proxy pattern, routing database requests dynamically depending on connection state.</p>
+          
+          <div class="func-card">
+            <h3>ModelProxy Class <span class="func-param">Proxy Gateway</span></h3>
+            <p><strong>Constructor Parameters:</strong> <code>(name, schemaDefinition, collectionName)</code></p>
+            <div class="code-block">
+get model() {\n  if (global.useMockDb) {\n    if (!this._mockModel) this._mockModel = new MockModel(this.collectionName, this.schemaDefinition);\n    return this._mockModel;\n  } else {\n    if (!this._mongooseModel) {\n      const schema = new mongoose.Schema(this.schemaDefinition, { timestamps: true });\n      this._mongooseModel = mongoose.model(this.name, schema);\n    }\n    return this._mongooseModel;\n  }\n}
+            </div>
+            <ul class="step-list">
+              <li><strong>Role:</strong> When controllers query database operations, <code>ModelProxy</code> checks the <code>global.useMockDb</code> flag.</li>
+              <li><strong>Routing:</strong> If true, redirects database queries to a <code>MockModel</code> instance. If false, creates a standard Mongoose Schema and returns a MongoDB Mongoose Model.</li>
+              <li><strong>Proxy Methods:</strong> Binds common methods (<code>find</code>, <code>findOne</code>, <code>findById</code>, <code>create</code>, etc.) directly to the active underlying model adapter.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- dbFallback.js -->
+      <div class="section-content" id="sect-dbfallback" style="display: none;">
+        <div class="card">
+          <span class="badge">File Database</span>
+          <h2>models/dbFallback.js</h2>
+          <p>Simulates MongoDB CRUD queries by writing and reading data structures directly to a local JSON file (`data/db.json`).</p>
+          
+          <div class="func-card">
+            <h3>MockModel Methods <span class="func-param">File system adapters</span></h3>
+            <ul class="step-list">
+              <li><strong>readData() / writeData():</strong> Native Node.js <code>fs.readFileSync</code> and <code>fs.writeFileSync</code> handlers that parse and save database collections to disk.</li>
+              <li><strong>find(query):</strong> Reads data collections and performs array filtering, supporting regular expressions (regex) for search and keyword filters.</li>
+              <li><strong>findById(id):</strong> Finds records matching the target ID and wraps the return object with an asynchronous <code>save()</code> function so controllers can modify fields dynamically.</li>
+              <li><strong>create(docData):</strong> Generates random alphanumeric ID values, sets date timestamps, appends the document, and serializes it back to <code>db.json</code>.</li>
+              <li><strong>findByIdAndUpdate(id, updateData):</strong> Finds target indexes and applies updates (supporting <code>$set</code> structures).</li>
+              <li><strong>findByIdAndDelete(id):</strong> Splices documents from the memory array and writes updates back to disk.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- User/Product/Order.js -->
+      <div class="section-content" id="sect-schemas" style="display: none;">
+        <div class="card">
+          <span class="badge">Data Schemas</span>
+          <h2>models/User.js, Product.js, Order.js</h2>
+          <p>These files outline the database models. Mongoose and the fallback JSON engine share these exact structures to ensure uniform properties:</p>
+          
+          <div class="func-card">
+            <h3>User Schema Fields</h3>
+            <p><code>username</code> (String), <code>email</code> (String), <code>password</code> (String), <code>role</code> (enum: ['client', 'admin']), <code>isSuspended</code> (Boolean), <code>contactDetails</code> (String), <code>profilePicture</code> (String), <code>address</code> (String).</p>
+          </div>
+          
+          <div class="func-card">
+            <h3>Product Schema Fields</h3>
+            <p><code>title</code> (String), <code>description</code> (String), <code>price</code> (Number), <code>category</code> (String), <code>location</code> (String), <code>sellerId</code> (String), <code>sellerName</code> (String), <code>images</code> (Array of Strings).</p>
+          </div>
+
+          <div class="func-card">
+            <h3>Order Schema Fields</h3>
+            <p><code>buyerId</code> (String), <code>buyerName</code> (String), <code>totalAmount</code> (Number), <code>shippingAddress</code> (String), <code>paymentStatus</code> (enum: ['Pending', 'Paid', 'Failed']), <code>status</code> (enum: ['Processing', 'Shipped', 'Delivered']), <code>items</code> (Array of product specifications: productId, title, price, quantity, image).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- auth.js (middleware) -->
+      <div class="section-content" id="sect-auth-mw" style="display: none;">
+        <div class="card">
+          <span class="badge">Middleware</span>
+          <h2>middleware/auth.js</h2>
+          <p>Intercepts HTTP requests to enforce access control permissions before they reach controller paths.</p>
+          
+          <div class="func-card">
+            <h3>protect(req, res, next) <span class="func-param">JWT Validation</span></h3>
+            <p><strong>Purpose:</strong> Validates user tokens and attaches user state to the request.</p>
+            <ul class="step-list">
+              <li><strong>Step 1:</strong> Checks if <code>req.headers.authorization</code> exists and starts with <code>Bearer</code>.</li>
+              <li><strong>Step 2:</strong> Extracts and decodes the JWT using <code>jwt.verify(token, JWT_SECRET)</code>.</li>
+              <li><strong>Step 3:</strong> Fetches user metadata from the database using the decoded ID.</li>
+              <li><strong>Step 4:</strong> Checks if <code>user.isSuspended</code> is true. If suspended, rejects the request immediately with a <code>403 Forbidden</code> response.</li>
+              <li><strong>Step 5:</strong> Attaches the user profile to <code>req.user</code> and invokes <code>next()</code> to continue request handling.</li>
+            </ul>
+          </div>
+
+          <div class="func-card">
+            <h3>adminOnly(req, res, next) <span class="func-param">Role Authorization</span></h3>
+            <p><strong>Purpose:</strong> Restricts access to administrative endpoints.</p>
+            <ul class="step-list">
+              <li><strong>Step 1:</strong> Checks if <code>req.user</code> is populated and has the <code>admin</code> role.</li>
+              <li><strong>Step 2:</strong> If verified, calls <code>next()</code>. Otherwise, returns a <code>403 Forbidden</code> response.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- authController.js -->
+      <div class="section-content" id="sect-auth-ctrl" style="display: none;">
+        <div class="card">
+          <span class="badge">Controllers</span>
+          <h2>controllers/authController.js</h2>
+          <p>Coordinates login, registration, and user profile management.</p>
+          
+          <div class="func-card">
+            <h3>registerUser(req, res) <span class="func-param">Account Creation</span></h3>
+            <ul class="step-list">
+              <li>Checks if username, email, and password exist. Checks email uniqueness.</li>
+              <li>Hashes password with bcrypt salt cycles, creates user, and returns signed JWT token.</li>
+            </ul>
+          </div>
+
+          <div class="func-card">
+            <h3>loginUser(req, res) <span class="func-param">Authentication</span></h3>
+            <ul class="step-list">
+              <li>Looks up user by email. Compares password hashes using <code>bcrypt.compare</code>.</li>
+              <li>Asserts the account is not suspended. Returns signed JWT credentials.</li>
+            </ul>
+          </div>
+
+          <div class="func-card">
+            <h3>updateUserProfile(req, res) <span class="func-param">Profile update</span></h3>
+            <ul class="step-list">
+              <li>Locates user by ID. Updates credentials. Re-hashes password if changed, then saves.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- productController.js -->
+      <div class="section-content" id="sect-prod-ctrl" style="display: none;">
+        <div class="card">
+          <span class="badge">Controllers</span>
+          <h2>controllers/productController.js</h2>
+          <p>Manages listing queries, item creation, and deletion checks.</p>
+          
+          <div class="func-card">
+            <h3>getProducts(req, res) <span class="func-param">Search & Filtering</span></h3>
+            <ul class="step-list">
+              <li>Gathers query parameters (<code>keyword</code>, <code>category</code>, <code>location</code>, <code>sellerId</code>).</li>
+              <li>Constructs a dynamic query object using case-insensitive regex for text search.</li>
+              <li>Fetches and returns matching documents.</li>
+            </ul>
+          </div>
+
+          <div class="func-card">
+            <h3>createProduct(req, res) <span class="func-param">Add Listing</span></h3>
+            <ul class="step-list">
+              <li>Validates required fields. Asserts that price is a positive number.</li>
+              <li>Binds the product to the active seller ID (from `req.user.id`).</li>
+            </ul>
+          </div>
+
+          <div class="func-card">
+            <h3>deleteProduct(req, res) <span class="func-param">Remove Listing</span></h3>
+            <ul class="step-list">
+              <li>Finds the listing by ID. Verifies that the requester is the listing owner or an administrator.</li>
+              <li>If validated, deletes the listing.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- orderController.js -->
+      <div class="section-content" id="sect-order-ctrl" style="display: none;">
+        <div class="card">
+          <span class="badge">Controllers</span>
+          <h2>controllers/orderController.js</h2>
+          <p>Handles checkouts and mock transaction processing.</p>
+          
+          <div class="func-card">
+            <h3>createOrder(req, res) <span class="func-param">Checkout & Payment Processing</span></h3>
+            <ul class="step-list">
+              <li>Validates that items exist and shipping address is provided.</li>
+              <li>Validates credit card parameters (card number, expiry, CVV format).</li>
+              <li><strong>Mock Gateway Simulation:</strong> If the credit card number ends in <code>0000</code>, it simulates a declined payment, returning a <code>402 Payment Required</code> response. Otherwise, sets status to <code>Paid</code> and saves the order.</li>
+            </ul>
+          </div>
+
+          <div class="func-card">
+            <h3>getUserOrders(req, res) <span class="func-param">Order History</span></h3>
+            <ul class="step-list">
+              <li>Retrieves all orders matching the buyer's ID, sorted by creation date.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- adminController.js -->
+      <div class="section-content" id="sect-admin-ctrl" style="display: none;">
+        <div class="card">
+          <span class="badge">Controllers</span>
+          <h2>controllers/adminController.js</h2>
+          <p>Orchestrates administrative controls and statistics operations.</p>
+          
+          <div class="func-card">
+            <h3>getDashboardStats(req, res) <span class="func-param">Metrics Aggregator</span></h3>
+            <ul class="step-list">
+              <li>Counts users, products, and orders. Sums the total revenue of paid transactions.</li>
+            </ul>
+          </div>
+
+          <div class="func-card">
+            <h3>toggleUserSuspension(req, res) <span class="func-param">Moderation Control</span></h3>
+            <ul class="step-list">
+              <li>Locates the target user. Prevents suspending administrators.</li>
+              <li>Toggles the user's <code>isSuspended</code> boolean flag, immediately blocking them from accessing the app.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- routes -->
+      <div class="section-content" id="sect-routes" style="display: none;">
+        <div class="card">
+          <span class="badge">Routing</span>
+          <h2>routes/authRoutes.js, productRoutes.js, orderRoutes.js, adminRoutes.js</h2>
+          <p>Maps API endpoints to their respective controller methods, applying protection middlewares where required:</p>
+          
+          <div class="func-card">
+            <h3>Authentication Routes (`/api/auth`)</h3>
+            <p>BULLET:<code>POST /register</code> - Maps to <code>registerUser</code> (Public)</p>
+            <p>BULLET:<code>POST /login</code> - Maps to <code>loginUser</code> (Public)</p>
+            <p>BULLET:<code>GET /profile</code> - Maps to <code>getUserProfile</code> (Protected by `protect` middleware)</p>
+            <p>BULLET:<code>PUT /profile</code> - Maps to <code>updateUserProfile</code> (Protected by `protect` middleware)</p>
+          </div>
+
+          <div class="func-card">
+            <h3>Product Routes (`/api/products`)</h3>
+            <p>BULLET:<code>GET /</code> - Maps to <code>getProducts</code> (Public)</p>
+            <p>BULLET:<code>POST /</code> - Maps to <code>createProduct</code> (Protected by `protect` middleware)</p>
+            <p>BULLET:<code>GET /:id</code> - Maps to <code>getProductById</code> (Public)</p>
+            <p>BULLET:<code>DELETE /:id</code> - Maps to <code>deleteProduct</code> (Protected by `protect` middleware)</p>
+          </div>
+
+          <div class="func-card">
+            <h3>Order Routes (`/api/orders`)</h3>
+            <p>BULLET:<code>POST /</code> - Maps to <code>createOrder</code> (Protected by `protect` middleware)</p>
+            <p>BULLET:<code>GET /myorders</code> - Maps to <code>getUserOrders</code> (Protected by `protect` middleware)</p>
+          </div>
+
+          <div class="func-card">
+            <h3>Admin Routes (`/api/admin`)</h3>
+            <p>BULLET:<code>GET /stats</code> - Maps to <code>getDashboardStats</code> (Protected by `protect` and `adminOnly` middlewares)</p>
+            <p>BULLET:<code>GET /users</code> - Maps to <code>getAllUsers</code> (Protected by `protect` and `adminOnly` middlewares)</p>
+            <p>BULLET:<code>PUT /users/:id/suspend</code> - Maps to <code>toggleUserSuspension</code> (Protected by `protect` and `adminOnly` middlewares)</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function showSection(sectionId) {
+      // Hide all section content
+      const sections = document.querySelectorAll('.section-content');
+      sections.forEach(sec => sec.style.display = 'none');
+      
+      // Show chosen section
+      const activeSec = document.getElementById('sect-' + sectionId);
+      if (activeSec) {
+        activeSec.style.display = 'block';
+      }
+      
+      // Toggle sidebar active state
+      const sidebarItems = document.querySelectorAll('.sidebar-item');
+      sidebarItems.forEach(item => item.classList.remove('active'));
+      
+      // Match active click
+      event.currentTarget.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>

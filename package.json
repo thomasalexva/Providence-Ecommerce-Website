@@ -1,0 +1,14 @@
+{
+  "name": "providence-ecommerce",
+  "version": "1.0.0",
+  "description": "Root package for running Providence E-commerce frontend and backend concurrently",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix \\\"back end\\\"\" \"npm run dev --prefix \\\"front end\\\"\"",
+    "install:backend": "npm install --prefix \"back end\"",
+    "install:frontend": "npm install --prefix \"front end\"",
+    "install:all": "npm install && npm run install:backend && npm run install:frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
